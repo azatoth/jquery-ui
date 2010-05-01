@@ -17,6 +17,7 @@
 $.widget( "ui.progressbar", {
 	options: {
 		value: 0,
+		animateResize: false,
 		minValue: 0,
 		maxValue: 100,
 		showFakeMomentum: false,
@@ -172,9 +173,13 @@ $.widget( "ui.progressbar", {
 	_refreshValue: function() {
 		var value = this.value();
 		var fraction = this._percentageValue();
-		this.valueDiv[ value === this.options.maxValue ? "addClass" : "removeClass"]( "ui-corner-right" )
-		.width( fraction.toFixed(this.options.barResolution)  + "%" );
+		this.valueDiv[ value === this.options.maxValue ? "addClass" : "removeClass"]( "ui-corner-right" );
 		this.element.attr( "aria-valuenow", value );
+		if( this.options.animateResize ) {
+			this.valueDiv.animate({'width': fraction.toFixed(this.options.barResolution) + '%'}, 'slow');
+		} else {
+			this.valueDiv.width( fraction.toFixed(this.options.barResolution)  + "%" );
+		}
 		this.percentageSpan.html( fraction.toFixed(this.options.displayResolution) + "%" );
 		this.percentageSpan.position({
 				my: "center",
