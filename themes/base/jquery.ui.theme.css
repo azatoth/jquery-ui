@@ -275,3 +275,6 @@
 	background-color: #cccccc;
 	opacity: 1;
 }
+.ui-progressbar-modal {
+	opacity: .9;
+}

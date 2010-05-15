@@ -17,6 +17,7 @@
 $.widget( "ui.progressbar", {
 	options: {
 		value: 0,
+		modal: false,
 		animateResize: false,
 		minValue: 0,
 		maxValue: 100,
@@ -56,9 +57,10 @@ $.widget( "ui.progressbar", {
 		.appendTo( this.element );
 		this._refreshValue();
 
-
+		this._wasModal = false;
 
 		this._setOption( 'value', this.options.value );
+		this._setOption( 'modal', this.options.modal );
 		this._setOption( 'minValue', this.options.minValue );
 		this._setOption( 'maxValue', this.options.maxValue );
 		this._setOption( 'showFakeMomentum', this.options.showFakeMomentum );
@@ -69,6 +71,8 @@ $.widget( "ui.progressbar", {
 	},
 
 	destroy: function() {
+
+		this._displayNormal(); // assume we are in modal
 		this.element
 			.removeClass( "ui-progressbar ui-widget ui-widget-content ui-corner-all" )
 			.removeAttr( "role" )
@@ -77,6 +81,7 @@ $.widget( "ui.progressbar", {
 			.removeAttr( "aria-valuenow" );
 
 		this.valueDiv.remove();
+		this.percentageSpan.remove();
 
 		$.Widget.prototype.destroy.apply( this, arguments );
 	},
@@ -156,9 +161,52 @@ $.widget( "ui.progressbar", {
 					this._hideFakeMomentum();
 				}
 				break;
+			case "modal":
+				if( value ) {
+					this._displayModal();
+				} else if( this._wasModal ) {
+					this._displayNormal();
+				}
+				break;
 		}
 
 		$.Widget.prototype._setOption.apply( this, arguments );
+	},
+	_displayModal: function(){
+		var self = this;
+		self._preModalOffset = self.element.offset();
+		self.element.addClass("ui-progressbar-modal");
+		$(window).bind('resize.progressbar',function() {
+				self.element.position(
+					{
+						'my': 'center',
+						'at': 'center',
+						'of': window
+					}
+				);
+
+			}
+		).triggerHandler('resize.progressbar');
+		self._modalOverlay = $('<div/>', {'class': 'ui-widget-overlay'}).appendTo('body');
+
+		self._wasModal = true;
+	},
+	_displayNormal: function(){
+		var self = this;
+		if( self._wasModal ) {
+			self.element.removeClass("ui-progressbar-modal");
+			self.element.offset(self._preModalOffset);
+			if( self.element.offset().left == 0 ) {
+				self.element.css('left', '' );
+			}
+			if( self.element.offset().top == 0 ) {
+				self.element.css('top', '' );
+			}
+
+			self._modalOverlay.remove();
+			$(window).unbind('resize.progressbar');
+			self._wasModal = false;
+		}
 	},
 
 	_displayFakeMomentum: function() {

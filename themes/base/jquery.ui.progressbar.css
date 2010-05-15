@@ -26,3 +26,7 @@
 	width: 100%;
 	background-repeat: repeat;
 }
+
+.ui-progressbar-modal {
+	width: 300px;
+}
