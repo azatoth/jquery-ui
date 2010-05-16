@@ -20,6 +20,39 @@ $(function() {
 		displayCurrentPercent: true
 	});
 
+	var animated_cur = animated_min = 0,
+	animated_max = 100,
+	animated_dir = + .5,
+	animated_del = 20;
+	var progressbar_displaycurrent_animated = $("#progressbar-displaycurrent-animated");
+	progressbar_displaycurrent_animated.progressbar({
+		value: 45,
+		showFakeMomentum: true,
+		displayCurrentPercent: true
+	});
+	var animate_callback = function() {
+		if (!progressbar_displaycurrent_animated.progressbar('option', 'indeterminate')) {
+			animated_cur += animated_dir;
+			if (animated_cur <= animated_min || animated_cur >= animated_max) {
+				animated_cur = 0;
+			}
+			progressbar_displaycurrent_animated.progressbar('option', 'value', animated_cur);
+		}
+		setTimeout(animate_callback, animated_del);
+	}
+	setTimeout(animate_callback, animated_del);
+	$('button#progressbar-indeterminal-button').click(function() {
+		var current_status = progressbar_displaycurrent_animated.progressbar('option', 'indeterminate');
+		if (current_status) {
+			progressbar_displaycurrent_animated.progressbar('option', 'indeterminate', false);
+			progressbar_displaycurrent_animated.progressbar('option', 'fakeMomentumSpeed', 1000);
+		} else {
+			progressbar_displaycurrent_animated.progressbar('option', 'indeterminate', true);
+			progressbar_displaycurrent_animated.progressbar('option', 'fakeMomentumSpeed', 4000);
+		}
+
+	});
+
 	$("#progressbar-indeterminate").progressbar({
 		indeterminate: true,
 		showFakeMomentum: true
