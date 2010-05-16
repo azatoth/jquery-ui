@@ -266,3 +266,12 @@
 	color: #ffffff;
 	text-shadow: 0.1em 0.1em 0.2em #666;
 }
+
+.ui-progress-indeterminate-low {
+	background-color: #777777;
+	opacity: .7;
+}
+.ui-progress-indeterminate-high {
+	background-color: #cccccc;
+	opacity: 1;
+}

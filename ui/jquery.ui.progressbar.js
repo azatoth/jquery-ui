@@ -24,7 +24,8 @@ $.widget( "ui.progressbar", {
 		fakeMomentumSpeed: 1000,
 		displayCurrentPercent: false,
 		barResolution: 3,
-		displayResolution: 0
+		displayResolution: 0,
+		indeterminate: false
 	},
 
 	min: 0,
@@ -32,20 +33,30 @@ $.widget( "ui.progressbar", {
 
 	_create: function() {
 		this.element
-			.addClass( "ui-progressbar ui-widget ui-widget-content ui-corner-all" )
-			.attr({
-				role: "progressbar",
-				"aria-valuemin": this.options.minValue,
-				"aria-valuemax": this.options.maxValue,
-				"aria-valuenow": this._value()
-			});
+		.addClass( "ui-progressbar ui-widget ui-widget-content ui-corner-all" )
+		.attr({	role: "progressbar" });
+		if( !this.options.indeterminate ) {
+			this.element.attr(
+				{
+					"aria-valuemin": this.options.minValue,
+					"aria-valuemax": this.options.maxValue,
+					"aria-valuenow": this._value()
+				}
+			);
+		};
 
-		this.valueDiv = $( "<div class='ui-progressbar-value ui-widget-header ui-corner-left'></div>" )
-			.appendTo( this.element );
+
+
+		this.valueDiv = $( "<div/>", {
+				'class': 'ui-progressbar-value ui-widget-header ui-corner-left'
+			}
+		)
+		.appendTo( this.element );
 		this.percentageSpan = $( "<span/>", { 'class': 'ui-progressbar-percent' } )
-			.appendTo( this.element );
-
+		.appendTo( this.element );
 		this._refreshValue();
+
+
 
 		this._setOption( 'value', this.options.value );
 		this._setOption( 'minValue', this.options.minValue );
@@ -54,6 +65,7 @@ $.widget( "ui.progressbar", {
 		this._setOption( 'displayCurrentPercent', this.options.displayCurrentPercent );
 		this._setOption( 'barResolution', this.options.barResolution );
 		this._setOption( 'displayResolution', this.options.displayResolution );
+		this._setOption( 'indeterminate', this.options.indeterminate );
 	},
 
 	destroy: function() {
@@ -82,9 +94,37 @@ $.widget( "ui.progressbar", {
 		switch ( key ) {
 			case "value":
 				this.options.value = value;
-				this.element.attr( "aria-valuenow", value );
-				this._refreshValue();
-				this._trigger( "change" );
+				if ( !this.options.indeterminate ) {
+					this.element.attr( "aria-valuenow", value );
+					this._refreshValue();
+					this._trigger( "change" );
+				}
+				break;
+			case "indeterminate":
+				var oldvalue = this.options.indeterminate;
+				this.options.indeterminate = value;
+				if( value ) {
+					this.element.removeAttr( "aria-valuemin" )
+					.removeAttr( "aria-valuemax" )
+					.removeAttr( "aria-valuenow" );
+					this.valueDiv.addClass("ui-corner-right");
+				} else {
+					this.element.attr(
+						{
+							"aria-valuemin": this.options.minValue,
+							"aria-valuemax": this.options.maxValue,
+							"aria-valuenow": this._value()
+						}
+					);
+					this.valueDiv.removeClass( 'ui-progress-indeterminate-high').css('opacity', 1);
+					if( !this._done() ) {
+						this.valueDiv.removeClass("ui-corner-right");
+					}
+				};
+				if( oldvalue != value ) {
+					this._refreshValue();
+					this._trigger( "change" );
+				}
 				break;
 			case "minValue":
 				this.options.minValue = value;
@@ -161,6 +201,9 @@ $.widget( "ui.progressbar", {
 		}
 		return Math.min( this.options.maxValue, Math.max( this.options.minValue, val ) );
 	},
+	_done: function() {
+		return  this.value() === this.options.maxValue;
+	},
 
 	_percentageValue: function() {
 		return (
@@ -171,30 +214,50 @@ $.widget( "ui.progressbar", {
 	},
 
 	_refreshValue: function() {
-		var value = this.value();
-		var fraction = this._percentageValue();
-		this.valueDiv[ value === this.options.maxValue ? "addClass" : "removeClass"]( "ui-corner-right" );
-		this.element.attr( "aria-valuenow", value );
-		if( this.options.animateResize ) {
-			this.valueDiv.animate({'width': fraction.toFixed(this.options.barResolution) + '%'}, 'slow');
-		} else {
-			this.valueDiv.width( fraction.toFixed(this.options.barResolution)  + "%" );
+		var self = this;
+		if( self.options.indeterminate ) {
+			self._indeterminateHigh  = ! self._indeterminateHigh;
+			self.valueDiv.toggleClass( 'ui-progress-indeterminate-high', self._indeterminateHigh );
+			self.valueDiv.animate(
+				{
+					'opacity':  self._indeterminateHigh ? .5 : 1,
+				},
+				{
+					'duration': 500,
+					'easing': 'linear',
+					'complete': function(){
+						if( !self.options.indeterminate ) {
+							self.valueDiv.css('opacity', 1);
+						}
+						self._refreshValue();
+
+					}
+				}
+			);
+			return;
 		}
-		this.percentageSpan.html( fraction.toFixed(this.options.displayResolution) + "%" );
-		this.percentageSpan.position({
+		var fraction = self._percentageValue();
+		self.valueDiv[ self._done() ? "addClass" : "removeClass"]( "ui-corner-right" );
+		if( self.options.animateResize ) {
+			self.valueDiv.animate({'width': fraction.toFixed(self.options.barResolution) + '%'}, 'slow');
+		} else {
+			self.valueDiv.width( fraction.toFixed(self.options.barResolution)  + "%" );
+		}
+		self.element.attr( "aria-valuenow", self.value() );
+		self.percentageSpan.html( fraction.toFixed(self.options.displayResolution) + "%" );
+		self.percentageSpan.position({
 				my: "center",
 				at: "center",
-				of: this.element,
+				of: self.element,
 				collision: 'none'
 			});
-		var bar_width = this.valueDiv.outerWidth(true);
-		var bar_offset = this.valueDiv.offset();
-		var percent_width = this.percentageSpan.outerWidth(true);
+		var bar_width = self.valueDiv.outerWidth(true);
+		var bar_offset = self.valueDiv.offset();
+		var percent_width = self.percentageSpan.outerWidth(true);
 
-		var percent_marg = percent_width - this.percentageSpan.innerWidth()/2;
+		var percent_marg = percent_width - self.percentageSpan.innerWidth()/2;
 
-		var percent_offset = this.percentageSpan.offset();
-
+		var percent_offset = self.percentageSpan.offset();
 		var percent_midpoint = percent_width/2 + percent_offset.left;
 		var percent_leftpoint = percent_offset.left;
 		var percent_rightpoint = percent_offset.left + percent_width;
@@ -211,12 +274,12 @@ $.widget( "ui.progressbar", {
 		}
 			percent_offset.left = parseInt( percent_offset.left );
 			percent_offset.top = parseInt( percent_offset.top );
-			this.percentageSpan.offset( percent_offset );
+			self.percentageSpan.offset( percent_offset );
 
 		if( percent_offset.left > bar_rightpoint ) {
-			this.percentageSpan.removeClass("ui-progressbar-percent-above");
+			self.percentageSpan.removeClass("ui-progressbar-percent-above");
 		} else {
-			this.percentageSpan.addClass("ui-progressbar-percent-above");
+			self.percentageSpan.addClass("ui-progressbar-percent-above");
 		}
 	}
 });

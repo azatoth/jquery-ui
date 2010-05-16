@@ -19,5 +19,10 @@ $(function() {
 		value: 37,
 		displayCurrentPercent: true
 	});
+
+	$("#progressbar-indeterminate").progressbar({
+		indeterminate: true,
+		showFakeMomentum: true
+	});
 });
 
