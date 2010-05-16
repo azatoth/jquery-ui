@@ -18,6 +18,8 @@ $.widget( "ui.progressbar", {
 		value: 0,
 		minValue: 0,
 		maxValue: 100,
+		showFakeMomentum: false,
+		fakeMomentumSpeed: 1000
 	},
 
 	min: 0,
@@ -40,6 +42,7 @@ $.widget( "ui.progressbar", {
 		this._setOption( 'value', this.options.value );
 		this._setOption( 'minValue', this.options.minValue );
 		this._setOption( 'maxValue', this.options.maxValue );
+		this._setOption( 'showFakeMomentum', this.options.showFakeMomentum );
 	},
 
 	destroy: function() {
@@ -88,11 +91,50 @@ $.widget( "ui.progressbar", {
 					this._trigger( "change" );
 				}
 				break;
+			case "showFakeMomentum":
+				if( value ) {
+					this._displayFakeMomentum();
+				} else {
+					this._hideFakeMomentum();
+				}
+				break;
 		}
 
 		$.Widget.prototype._setOption.apply( this, arguments );
 	},
 
+	_displayFakeMomentum: function() {
+		var self = this;
+		if( self.fakeMomentumDiv ) {
+			return;
+		}
+		self.fakeMomentumDiv = $('<div/>', { 'class': 'ui-progressbar-fake-momentum ui-corner-left'}).appendTo( self.valueDiv );
+		self._showFakeMomentumCallback = function() {
+			self.fakeMomentumDiv.css({'background-position': '0 0'})
+			.animate(
+				{ 
+					'background-position': "-25px 0"
+				},
+				{
+					duration: self.options.fakeMomentumSpeed,
+					easing: 'linear',
+					complete: function() {
+						if( self.fakeMomentumDiv ) {
+							self._showFakeMomentumCallback();
+						}
+					}
+				}
+			);
+		};
+		self._showFakeMomentumCallback();
+	},
+	_hideFakeMomentum: function() {
+		var self = this;
+		if( !self.fakeMomentumDiv ) {
+			return;
+		}
+		self.fakeMomentumDiv.remove();
+	},
 	_value: function() {
 		var val = this.options.value;
 		// normalize invalid value

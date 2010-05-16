@@ -7,5 +7,18 @@
  *
  * http://docs.jquery.com/UI/Progressbar#theming
  */
-.ui-progressbar { height:2em; text-align: left; }
-.ui-progressbar .ui-progressbar-value {margin: -1px; height:100%; }
+.ui-progressbar { height:2em; text-align: left; position: relative }
+.ui-progressbar .ui-progressbar-value {
+	margin: -1px;
+	height:100%;
+	position: relative;
+	overflow: hidden
+}
+
+.ui-progressbar-fake-momentum {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	background-repeat: repeat;
+}
