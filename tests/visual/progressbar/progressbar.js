@@ -15,5 +15,9 @@ $(function() {
 		maxValue: 50,
 		value: 37
 	});
+	$("#progressbar-displaycurrent").progressbar({
+		value: 37,
+		displayCurrentPercent: true
+	});
 });
 

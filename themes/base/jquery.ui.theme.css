@@ -255,3 +255,14 @@
 	background-image: url(images/ui-bg_progressbar_momentum_25x50.png);
 
 }
+.ui-progressbar-percent {
+	color: #aaaaaa;
+	text-shadow: 0.1em 0.1em 0.2em #ccc;
+	font-family: sans-serif;
+	font-size: 1em;
+	font-weight: 900;
+}
+.ui-progressbar-percent-above {
+	color: #ffffff;
+	text-shadow: 0.1em 0.1em 0.2em #666;
+}

@@ -15,6 +15,10 @@
 	overflow: hidden
 }
 
+.ui-progressbar-percent {
+	position: absolute;
+}
+
 .ui-progressbar-fake-momentum {
 	margin: 0;
 	padding: 0;
