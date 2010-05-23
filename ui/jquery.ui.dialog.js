@@ -27,7 +27,7 @@ var uiDialogClasses =
 $.widget("ui.dialog", {
 	options: {
 		autoOpen: true,
-		buttons: {},
+		buttons: null,
 		closeOnEscape: true,
 		closeText: 'close',
 		dialogClass: '',
@@ -331,23 +331,59 @@ $.widget("ui.dialog", {
 
 		// if we already have a button pane, remove it
 		self.uiDialog.find('.ui-dialog-buttonpane').remove();
+		if( $.isArray(buttons) ) {
+			if( buttons.length ) {
+				uiDialogButtonPane.appendTo(self.uiDialog);
+			}
+			$.each(buttons, function( index,value ) {
+					// Note: Default button seems to be browser dependent, some seems to use "submit,
+					// some seems to default to plain button.
+					var options = {};
+					var button_options = {};
 
-		if (typeof buttons === 'object' && buttons !== null) {
-			$.each(buttons, function() {
-				return !(hasButtons = true);
-			});
-		}
-		if (hasButtons) {
-			$.each(buttons, function(name, fn) {
-				var button = $('<button type="button"></button>')
-					.text(name)
-					.click(function() { fn.apply(self.element[0], arguments); })
-					.appendTo(uiDialogButtonPane);
-				if ($.fn.button) {
-					button.button();
-				}
-			});
-			uiDialogButtonPane.appendTo(self.uiDialog);
+					// normal label
+					if( typeof value.label != 'undefined' ) {
+						options = $.extend( options, { 'html': value.label } );
+					}
+
+					// extend with optional attributes, methods and callbacks
+					if( typeof value.options != 'undefined' ) {
+						options = $.extend( options, value.options );
+					}
+					// ui.button specific options
+					if( typeof value.button_options != 'undefined' ) {
+						options = $.extend( button_options, value.button_options );
+					}
+
+					var button = $("<button/>", options ).appendTo(uiDialogButtonPane).button(button_options);
+
+
+
+					// normal callback
+					if( typeof value.callback != 'undefined' ) {
+						button.bind( 'click.dialogbutton', jQuery.proxy(value.callback, self.element[0]) );
+					}
+
+				});
+		} else {
+			// XXX Deprecated, old style button definition
+			if (typeof buttons === 'object' && buttons !== null) {
+				$.each(buttons, function() {
+						return !(hasButtons = true);
+					});
+			}
+			if (hasButtons) {
+				$.each(buttons, function(name, fn) {
+						var button = $('<button type="button"></button>')
+						.text(name)
+						.click(function() { fn.apply(self.element[0], arguments); })
+						.appendTo(uiDialogButtonPane);
+						if ($.fn.button) {
+							button.button();
+						}
+					});
+				uiDialogButtonPane.appendTo(self.uiDialog);
+			}
 		}
 	},
 
