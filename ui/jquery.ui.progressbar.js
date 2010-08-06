@@ -268,7 +268,7 @@ $.widget( "ui.progressbar", {
 			self.valueDiv.toggleClass( 'ui-progress-indeterminate-high', self._indeterminateHigh );
 			self.valueDiv.animate(
 				{
-					'opacity':  self._indeterminateHigh ? .5 : 1,
+					'opacity':  self._indeterminateHigh ? .5 : 1
 				},
 				{
 					'duration': 500,
